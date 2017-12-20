@@ -5,21 +5,24 @@ import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 /**
  * Created by pmp on 20/12/2017.
  */
 
 interface WeatherAPI {
-    @GET("yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22melbourne%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys")
-    fun getForecast(): Call<Weather>
+    @GET("yql?format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys")
+    fun getForecast(@Query("q") q: String): Call<Weather>
 }
 
 /* the constuctor parameters should match the CASE of json keys*/
 class Weather(val query: WeatherQuery)
 class WeatherQuery(val results: WeatherResult)
 class WeatherResult(val channel: WeatherChannel)
-class WeatherChannel(val title: String)
+class WeatherChannel(val title: String, val item: WeatherItem)
+class WeatherItem(val forecast : List<Forecast>)
+class Forecast(val date: String, val day: String, val high: String, val low: String, val text: String)
 
 class WeatherRetriever {
     val service : WeatherAPI
@@ -29,8 +32,13 @@ class WeatherRetriever {
         service = retrofit.create(WeatherAPI::class.java)
     }
 
-    fun getForecast(callback: Callback<Weather>) {
-        val call = service.getForecast()
+    fun getForecast(callback: Callback<Weather>, searchTerm: String) {
+        var location = searchTerm
+        if (location == "") {
+            location = "Melbourne"
+        }
+        val q = "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text=\"$location\") and u=\"c\""
+        val call = service.getForecast(q)
         call.enqueue(callback)  // run this command async
     }
 }
