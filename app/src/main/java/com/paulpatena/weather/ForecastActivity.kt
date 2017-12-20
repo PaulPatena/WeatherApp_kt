@@ -24,19 +24,16 @@ class ForecastActivity : AppCompatActivity() {
 
         var retriever = WeatherRetriever()
 
-        val callback = object : Callback<List<Forecast>> {
-            override fun onResponse(call: Call<List<Forecast>>?, response: Response<List<Forecast>>?) {
-                println("We got a response")
-//                println(response?.body())
-                for (forecastDay in response?.body()!!) {
-                    println("High: ${forecastDay.high} Low: ${forecastDay.low}")
-                }
+        val callback = object : Callback<Weather> {
+            override fun onResponse(call: Call<Weather>?, response: Response<Weather>?) {
+                println("its working")
+                println(response?.body()?.query?.results?.channel?.title)
+                title = response?.body()?.query?.results?.channel?.title
             }
 
-            override fun onFailure(call: Call<List<Forecast>>?, t: Throwable?) {
-                println("API failed")
+            override fun onFailure(call: Call<Weather>?, t: Throwable?) {
+                println("failed not working")
             }
-
         }
 
         retriever.getForecast(callback)
